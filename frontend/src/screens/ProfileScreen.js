@@ -4,7 +4,8 @@ import { Form, Button, Row, Col } from 'react-bootstrap'
 import { useDispatch, useSelector } from 'react-redux'
 import Loader from '../components/Loader'
 import Message from '../components/Message'
-import { getUserDetails } from '../actions/userActions'
+import { getUserDetails, updateUserProfile } from '../actions/userActions'
+import { USER_UPDATE_PROFILE_RESET } from '../constants/userConstants'
 
 function ProfileScreen() {
     const [name, setName] = useState('')
@@ -23,12 +24,16 @@ function ProfileScreen() {
     const userLogin = useSelector(state => state.userLogin)
     const { userInfo } = userLogin
 
+    const userUpdateProfile = useSelector(state => state.userUpdateProfile)
+    const { success } = userUpdateProfile
+
     useEffect(() => {
         if (!userInfo) {
             navigate('/login')
         }
         else {
-            if (!user || !user.name) {
+            if (!user || !user.name || success) {
+                dispatch({ type: USER_UPDATE_PROFILE_RESET })
                 dispatch(getUserDetails('profile'))
             }
             else {
@@ -36,7 +41,7 @@ function ProfileScreen() {
                 setEmail(user.email)
             }
         }
-    }, [navigate, userInfo, dispatch, user])
+    }, [navigate, userInfo, dispatch, user, success])
 
     const submitHandler = (e) => {
         e.preventDefault()
@@ -44,7 +49,13 @@ function ProfileScreen() {
             setMessage('Passwords do not match.')
         }
         else {
-            console.log('Updating...')
+            dispatch(updateUserProfile({
+                'id': user._id, 
+                'name': name,
+                'email': email,
+                'password': password
+            }))
+            setMessage('')
         }
     }
   return (
@@ -80,7 +91,6 @@ function ProfileScreen() {
                 <Form.Group controlId='password'>
                     <Form.Label>Password</Form.Label>
                     <Form.Control 
-                        required
                         type='password' 
                         placeholder='Enter Password' 
                         value={password} 

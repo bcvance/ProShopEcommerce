@@ -15,6 +15,12 @@ import {
     USER_DETAILS_SUCCESS,
     USER_DETAILS_FAIL,
     USER_DETAILS_FAIL_400,
+
+    USER_UPDATE_PROFILE_REQUEST,
+    USER_UPDATE_PROFILE_SUCCESS,
+    USER_UPDATE_PROFILE_FAIL,
+    USER_UPDATE_PROFILE_FAIL_400,
+    USER_UPDATE_PROFILE_RESET,
 } from '../constants/userConstants'
 
 export const login = (email, password) => async (dispatch) => {
@@ -143,6 +149,59 @@ export const getUserDetails = (id) => async (dispatch, getState) => {
     }catch(error) {
         dispatch({
             type: USER_DETAILS_FAIL,
+            payload: error.response && error.response.data.detail
+            ? error.response.data.detail
+            : error.message
+        })
+    }
+}
+
+
+export const updateUserProfile = (user) => async (dispatch, getState) => {
+    try {
+        dispatch({
+            type: USER_UPDATE_PROFILE_REQUEST
+        })
+
+        const { 
+            userLogin: { userInfo }
+         } = getState()
+
+        let url = `http://127.0.0.1:8000/api/users/profile/update/`
+        let response = await fetch(url, {
+            method: 'PUT',
+            body: JSON.stringify(user),
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${userInfo.token}`
+            }
+        })
+        let data = await response.json()
+        if (response.ok) {
+
+
+            dispatch({
+                type:USER_UPDATE_PROFILE_SUCCESS,
+                payload:data
+            })
+
+            dispatch({
+                type:USER_LOGIN_SUCCESS,
+                payload:data
+            })
+
+            localStorage.setItem('userInfo', JSON.stringify(data))
+        }
+        else {
+            dispatch({
+                type: USER_UPDATE_PROFILE_FAIL_400,
+                payload:data.detail
+            })
+        }
+
+    }catch(error) {
+        dispatch({
+            type: USER_UPDATE_PROFILE_FAIL,
             payload: error.response && error.response.data.detail
             ? error.response.data.detail
             : error.message
