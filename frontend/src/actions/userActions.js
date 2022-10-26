@@ -22,7 +22,15 @@ import {
     USER_UPDATE_PROFILE_FAIL,
     USER_UPDATE_PROFILE_FAIL_400,
     USER_UPDATE_PROFILE_RESET,
+
+    USER_LIST_REQUEST,
+    USER_LIST_SUCCESS,
+    USER_LIST_RESET,
+    USER_LIST_FAIL,
+    USER_LIST_FAIL_400,
 } from '../constants/userConstants'
+
+import { ORDER_LIST_MY_RESET } from '../constants/orderConstants'
 
 export const login = (email, password) => async (dispatch) => {
     try {
@@ -68,6 +76,8 @@ export const logout = () => (dispatch) => {
     localStorage.removeItem('userInfo')
     dispatch({type: USER_LOGOUT})
     dispatch({type: USER_DETAILS_RESET})
+    dispatch({type: ORDER_LIST_MY_RESET})
+    dispatch({type: USER_LIST_RESET})
 }
 
 export const register = (name, email, password) => async (dispatch) => {
@@ -204,6 +214,50 @@ export const updateUserProfile = (user) => async (dispatch, getState) => {
     }catch(error) {
         dispatch({
             type: USER_UPDATE_PROFILE_FAIL,
+            payload: error.response && error.response.data.detail
+            ? error.response.data.detail
+            : error.message
+        })
+    }
+}
+
+export const listUsers = () => async (dispatch, getState) => {
+    try {
+        dispatch({
+            type: USER_LIST_REQUEST
+        })
+
+        const { 
+            userLogin: { userInfo }
+         } = getState()
+
+        let url = `http://127.0.0.1:8000/api/users/`
+        let response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${userInfo.token}`
+            }
+        })
+        let data = await response.json()
+        if (response.ok) {
+
+
+            dispatch({
+                type:USER_LIST_SUCCESS,
+                payload:data
+            })
+        }
+        else {
+            dispatch({
+                type: USER_LIST_FAIL_400,
+                payload:data.detail
+            })
+        }
+
+    }catch(error) {
+        dispatch({
+            type: USER_LIST_FAIL,
             payload: error.response && error.response.data.detail
             ? error.response.data.detail
             : error.message

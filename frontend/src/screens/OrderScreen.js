@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { Button, Row, Col, ListGroup, Image, Card } from 'react-bootstrap'
 import { useDispatch, useSelector } from 'react-redux'
+import { PayPalButton } from 'react-paypal-button-v2'
 import Message from '../components/Message'
 import Loader from '../components/Loader'
 import { getOrderDetails, payOrder } from '../actions/orderActions'
+import { ORDER_PAY_RESET } from '../constants/orderConstants'
 
 
 
@@ -39,6 +41,7 @@ function OrderScreen() {
         // get order deatails if we don't have order details, order details don't match 
         // order id in url params, or payment status changes
         if (!order || successPay || order._id !== Number(id)) {
+            dispatch({type: ORDER_PAY_RESET})
             dispatch(getOrderDetails(id))
         }else if (!order.isPaid) {
             if (!window.paypal) {
@@ -95,7 +98,7 @@ function OrderScreen() {
                         {order.isPaid ? (
                             <Message variant='success'>Paid on {order.paidAt}</Message>
                         ) : (
-                            <Message variant='warning'>Not paid</Message>
+                            <Message variant='warning'>Not yet paid</Message>
                         )}
                     </ListGroup.Item>
 
@@ -171,6 +174,21 @@ function OrderScreen() {
                                 <Col>${order.totalPrice}</Col>
                             </Row>
                         </ListGroup.Item>
+
+                        {!order.isPaid && (
+                            <ListGroup.Item>
+                                {loadingPay && <Loader />}
+
+                                {!sdkReady ? (
+                                    <Loader />
+                                ) : (
+                                    <PayPalButton
+                                        amount={order.totalPrice}
+                                        onSuccess={successPaymentHandler}    
+                                    />
+                                )}
+                            </ListGroup.Item>
+                        )}
                     </ListGroup>
                 </Card>
             </Col>

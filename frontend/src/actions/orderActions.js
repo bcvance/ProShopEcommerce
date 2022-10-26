@@ -14,6 +14,12 @@ import {
     ORDER_PAY_FAIL_400,
     ORDER_PAY_FAIL,
     ORDER_PAY_RESET,
+
+    ORDER_LIST_MY_REQUEST,
+    ORDER_LIST_MY_SUCCESS,
+    ORDER_LIST_MY_FAIL_400,
+    ORDER_LIST_MY_FAIL,
+    ORDER_LIST_MY_RESET,
 } from'../constants/orderConstants'
 
 import { CART_CLEAR_ITEMS } from '../constants/cartConstants'
@@ -144,6 +150,48 @@ export const payOrder = (id, paymentResult) => async (dispatch, getState) => {
     }catch(error) {
         dispatch({
             type: ORDER_PAY_FAIL,
+            payload: error.response && error.response.data.detail
+            ? error.response.data.detail
+            : error.message
+        })
+    }
+}
+
+
+export const listMyOrders = (id) => async (dispatch, getState) => {
+    try {
+        dispatch({
+            type: ORDER_LIST_MY_REQUEST
+        })
+
+        const { 
+            userLogin: { userInfo }
+         } = getState()
+        let url = `http://127.0.0.1:8000/api/orders/myorders/`
+        let response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${userInfo.token}`
+            }
+        })
+        let data = await response.json()
+        if (response.ok) {
+            dispatch({
+                type: ORDER_LIST_MY_SUCCESS,
+                payload: data
+            })
+        }
+        else {
+            dispatch({
+                type: ORDER_LIST_MY_FAIL_400,
+                payload: data.detail
+            })
+        }
+
+    }catch(error) {
+        dispatch({
+            type: ORDER_LIST_MY_FAIL,
             payload: error.response && error.response.data.detail
             ? error.response.data.detail
             : error.message
