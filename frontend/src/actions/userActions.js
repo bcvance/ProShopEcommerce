@@ -28,6 +28,11 @@ import {
     USER_LIST_RESET,
     USER_LIST_FAIL,
     USER_LIST_FAIL_400,
+
+    USER_DELETE_REQUEST,
+    USER_DELETE_SUCCESS,
+    USER_DELETE_FAIL,
+    USER_DELETE_FAIL_400,
 } from '../constants/userConstants'
 
 import { ORDER_LIST_MY_RESET } from '../constants/orderConstants'
@@ -258,6 +263,50 @@ export const listUsers = () => async (dispatch, getState) => {
     }catch(error) {
         dispatch({
             type: USER_LIST_FAIL,
+            payload: error.response && error.response.data.detail
+            ? error.response.data.detail
+            : error.message
+        })
+    }
+}
+
+export const deleteUser = (id) => async (dispatch, getState) => {
+    try {
+        dispatch({
+            type: USER_DELETE_REQUEST
+        })
+
+        const { 
+            userLogin: { userInfo }
+         } = getState()
+
+        let url = `http://127.0.0.1:8000/api/users/delete/${id}/`
+        let response = await fetch(url, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${userInfo.token}`
+            }
+        })
+        let data = await response.json()
+        if (response.ok) {
+
+
+            dispatch({
+                type:USER_DELETE_SUCCESS,
+                payload:data
+            })
+        }
+        else {
+            dispatch({
+                type: USER_DELETE_FAIL_400,
+                payload:data.detail
+            })
+        }
+
+    }catch(error) {
+        dispatch({
+            type: USER_DELETE_FAIL,
             payload: error.response && error.response.data.detail
             ? error.response.data.detail
             : error.message

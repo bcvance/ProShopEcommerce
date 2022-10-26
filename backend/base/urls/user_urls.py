@@ -9,4 +9,5 @@ urlpatterns = [
     path('profile/update/', views.updateUserProfile, name='user_profile_update'),
     path('login/', views.MyTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('register/', views.registerUser, name='register'),
+    path('delete/<str:pk>/', views.deleteUser, name='user_delete'),
 ]

@@ -33,3 +33,9 @@ export const USER_LIST_RESET = 'USER_LIST_RESET'
 export const USER_LIST_FAIL = 'USER_LIST_FAIL'
 // case for 400 reponses
 export const USER_LIST_FAIL_400 = 'USER_LIST_FAIL_400'
+
+export const USER_DELETE_REQUEST = 'USER_DELETE_REQUEST'
+export const USER_DELETE_SUCCESS = 'USER_DELETE_SUCCESS'
+export const USER_DELETE_FAIL = 'USER_DELETE_FAIL'
+// case for 400 reponses
+export const USER_DELETE_FAIL_400 = 'USER_DELETE_FAIL_400'
