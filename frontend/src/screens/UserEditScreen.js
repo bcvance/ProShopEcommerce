@@ -4,8 +4,9 @@ import { Form, Button } from 'react-bootstrap'
 import { useDispatch, useSelector } from 'react-redux'
 import Loader from '../components/Loader'
 import Message from '../components/Message'
-import { getUserDetails } from '../actions/userActions'
+import { getUserDetails, updateUser } from '../actions/userActions'
 import FormContainer from '../components/FormContainer'
+import { USER_UPDATE_RESET } from '../constants/userConstants'
 
 function EditUserScreen() {
 
@@ -23,19 +24,29 @@ function EditUserScreen() {
     const userDetails = useSelector(state => state.userDetails)
     const { loading, error, user } = userDetails
 
+    const userUpdate = useSelector(state => state.userUpdate)
+    const { loading:loadingUpdate, error:errorUpdate, success:successUpdate } = userUpdate
+
     useEffect(() => {
-        if (!user.name || user._id !== Number(userId)) {
-            dispatch(getUserDetails(userId))
-        } 
-        else {
-            setName(user.name)
-            setEmail(user.email)
-            setIsAdmin(user.isAdmin)
+        if (successUpdate) {
+            dispatch({type:USER_UPDATE_RESET})
+            navigate('/admin/userlist')
         }
-    }, [user, userId])
+        else {
+            if (!user.name || user._id !== Number(userId)) {
+                dispatch(getUserDetails(userId))
+            } 
+            else {
+                setName(user.name)
+                setEmail(user.email)
+                setIsAdmin(user.isAdmin)
+            }
+        }
+    }, [user, userId, successUpdate, navigate])
 
     const submitHandler = (e) => {
         e.preventDefault()
+        dispatch(updateUser({_id:user._id, name, email, isAdmin}))
     }
 
   return (
@@ -46,6 +57,11 @@ function EditUserScreen() {
         </Link>
         <FormContainer>
             <h1>Edit User</h1>
+
+            {loadingUpdate && <Loader />}
+            {errorUpdate && <Message variant='danger'>{errorUpdate}</Message>}
+
+
             {loading ? <Loader />
             : error ? <Message variant='danger'>{error}</Message>
                 : (
@@ -60,7 +76,7 @@ function EditUserScreen() {
                             </Form.Control>
                         </Form.Group>
 
-                        <Form.Group controlId='email'>
+                        <Form.Group controlId='email' className='mt-2'>
                             <Form.Label>Email Address</Form.Label>
                             <Form.Control 
                                 type='email' 
@@ -70,8 +86,7 @@ function EditUserScreen() {
                             </Form.Control>
                         </Form.Group>
 
-                        <Form.Group controlId='isAdmin'>
-                            <Form.Label>Password</Form.Label>
+                        <Form.Group controlId='isAdmin' className='my-2'>
                             <Form.Check 
                                 type='checkbox' 
                                 label='Is Admin' 
